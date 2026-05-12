@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate JSON files
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('mcp_config.json', 'utf8'))"
+          node -e "JSON.parse(require('fs').readFileSync('.windsurf/hooks.json', 'utf8'))"
+          echo "All JSON files are valid"
+
+      - name: Check version consistency
+        run: |
+          MCP_VER=$(node -e "const c=JSON.parse(require('fs').readFileSync('mcp_config.json','utf8')); console.log(c.mcpServers.coree.args.find(a=>a.startsWith('@coree-ai/coree@')).replace('@coree-ai/coree@',''))")
+          HOOK_VER=$(node -e "const c=JSON.parse(require('fs').readFileSync('.windsurf/hooks.json','utf8')); const cmd=c.hooks.pre_user_prompt[0].command; const m=cmd.match(/@coree-ai\/coree@([^ ]+)/); console.log(m[1])")
+          echo "mcp_config.json version: $MCP_VER"
+          echo "hooks.json version:      $HOOK_VER"
+          [ "$MCP_VER" = "$HOOK_VER" ] || (echo "Version mismatch" && exit 1)
+          echo "Versions match"
