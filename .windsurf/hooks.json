@@ -2,7 +2,7 @@
   "hooks": {
     "pre_user_prompt": [
       {
-        "command": "npx --yes @coree-ai/coree@0.14.0 inject --type prompt --budget 8000",
+        "command": "npx --yes @coree-ai/coree@0.14.0 inject --type prompt",
         "show_output": true
       }
     ],
